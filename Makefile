@@ -10,7 +10,7 @@ IMG := kernel.elf
 
 CFLAGS    := -ffreestanding -Wall -Wextra -Werror -I src/arch/$(ARCH)
 LDFLAGS   := -ffreestanding -nostdlib -lgcc -T src/arch/$(ARCH)/linker.ld
-QEMUFLAGS := -d int -kernel $(BUILDDIR)/$(IMG) -serial mon:stdio -s
+QEMUFLAGS := -kernel $(BUILDDIR)/$(IMG) -serial mon:stdio -s
 
 all: qemu
 
