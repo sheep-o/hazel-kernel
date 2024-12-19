@@ -8,9 +8,9 @@ OBJ := $(addprefix $(BUILDDIR)/, \
 	   $(patsubst %.S,%.o, $(patsubst %.c,%.o, $(SRC)))))
 IMG := kernel.elf
 
-CFLAGS    := -ffreestanding -Wall -Wextra -Werror
+CFLAGS    := -ffreestanding -Wall -Wextra -Werror -I src/arch/$(ARCH)
 LDFLAGS   := -ffreestanding -nostdlib -lgcc -T src/arch/$(ARCH)/linker.ld
-QEMUFLAGS := -kernel $(BUILDDIR)/$(IMG) -serial mon:stdio
+QEMUFLAGS := -d int -kernel $(BUILDDIR)/$(IMG) -serial mon:stdio -s
 
 all: qemu
 
