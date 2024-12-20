@@ -1,8 +1,44 @@
-.section .text
+.section .multiboot.text, "ax", @progbits
 .global _start
 _start:
     cmpl $0x2BADB002, %eax
     jne halt
+
+    // Create a page table for the first 4 MiB of physical memory
+    mov $0, %eax
+    mov $0, %edx
+.fill_table:
+    mov %edx, %ecx
+    or $7, %ecx
+    mov %ecx, boot_page_tab-0xC0000000(,%eax,4)
+    inc %eax
+    add $0x1000, %edx
+    cmp $1024, %eax
+    jne .fill_table
+
+    mov $boot_page_tab, %eax
+    sub $0xC0000000, %eax
+    or $7, %eax
+    // Identity map in order to execute the final jump instruction once paging is enabled
+    xor %ecx, %ecx
+    mov %eax, boot_page_dir-0xC0000000(,%ecx,4)
+    // Map to 0xC0000000 (index 768 in page dir)
+    mov $768, %ecx
+    mov %eax, boot_page_dir-0xC0000000(,%ecx,4)
+
+    // Enable paging
+    mov $boot_page_dir, %eax
+    sub $0xC0000000, %eax
+    mov %eax, %cr3
+    mov %cr0, %eax
+    or $0x80000001, %eax
+    mov %eax, %cr0
+    jmp higher_half
+    
+.section .text
+higher_half:
+    // Remove identity mapping for kernel as it's no longer needed
+    movl $2, (boot_page_dir)
 
     lgdt (gdtp)
     movw $0x10, %ax
@@ -14,7 +50,10 @@ _start:
     ljmp $0x8, $.use_code_seg
 .use_code_seg:
     movl $STACK_TOP, %esp
-    call kmain
+    // Pointer to the multiboot info struct is stored in ebx
+    add $0xC0000000, %ebx
+    push %ebx
+    call bootstrap
     cli
 halt:
     jmp halt
@@ -25,29 +64,6 @@ pit_isr:
     call tmr_pit_handler
     popa
     iret
-
-gdt:
-gdt_null:
-    .quad 0
-gdt_code:
-    .word 0xffff
-    .word 0
-    .byte 0
-    .byte 0b10011010
-    .byte 0b11001111
-    .byte 0
-gdt_data:
-    .word 0xffff
-    .word 0
-    .byte 0
-    .byte 0b10010010
-    .byte 0b11001111
-    .byte 0
-gdt_end:
-
-gdtp:
-    .word gdt_end - gdt - 1
-    .long gdt
 
 .macro isr_err_stub i=0
     isr_stub_\i:
@@ -93,6 +109,12 @@ isr_no_err_stub 29
 isr_err_stub    30
 isr_no_err_stub 31
 
+.section .data
+boot_page_tab:
+.fill 1024, 4, 0
+boot_page_dir:
+.fill 1024, 4, 0
+
 .global isr_stub_table
 isr_stub_table:
 .long isr_stub_0
@@ -127,3 +149,26 @@ isr_stub_table:
 .long isr_stub_29
 .long isr_stub_30
 .long isr_stub_31
+
+gdt:
+gdt_null:
+    .quad 0
+gdt_code:
+    .word 0xffff
+    .word 0
+    .byte 0
+    .byte 0b10011010
+    .byte 0b11001111
+    .byte 0
+gdt_data:
+    .word 0xffff
+    .word 0
+    .byte 0
+    .byte 0b10010010
+    .byte 0b11001111
+    .byte 0
+gdt_end:
+
+gdtp:
+    .word gdt_end - gdt - 1
+    .long gdt
