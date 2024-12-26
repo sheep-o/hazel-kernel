@@ -2,6 +2,7 @@
 #define HAZEL_KERNEL_H_
 
 #include <stdint.h>
+#include <heap.h>
 
 struct mem_region {
     uint32_t start;
@@ -15,6 +16,7 @@ struct k_ctx {
     // For now allocate 3 structs for describing all free memory regions
     // Should be enough... for now...
     struct mem_region available_mem[MEM_REGIONS_MAX];
+    struct node *free_mem_head;
 };
 
 #endif

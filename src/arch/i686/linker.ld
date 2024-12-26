@@ -29,4 +29,5 @@ SECTIONS {
         . += 0x16000; /* 16 KiB of stack space */
         STACK_TOP = .;
     }
+    KERNEL_END = .;
 }

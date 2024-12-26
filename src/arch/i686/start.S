@@ -67,12 +67,23 @@ pit_isr:
 
 .macro isr_err_stub i=0
     isr_stub_\i:
-        hlt
+        cli
+        push $\i
+        pusha
+        call exception_handler
+        popa
+        add $8, %esp
         iret
 .endm
 .macro isr_no_err_stub i=0
     isr_stub_\i:
-        hlt
+        cli
+        push 0
+        push $\i
+        pusha
+        call exception_handler
+        popa
+        add $12, %esp
         iret
 .endm
 
@@ -112,6 +123,8 @@ isr_no_err_stub 31
 .section .data
 boot_page_tab:
 .fill 1024, 4, 0
+
+.global boot_page_dir
 boot_page_dir:
 .fill 1024, 4, 0
 
