@@ -8,12 +8,6 @@ struct res_hdr {
    uint32_t size;
 };
 
-struct tree {
-    uint32_t size;
-    struct tree *left;
-    struct tree *right;
-};
-
 struct node {
     uint32_t size;
     struct node *next;
@@ -21,5 +15,6 @@ struct node {
 
 void heap_init(void);
 void *heap_alloc(uint32_t len);
+void heap_free(void *ptr);
 
 #endif

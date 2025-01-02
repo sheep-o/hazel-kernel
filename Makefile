@@ -12,7 +12,7 @@ CFLAGS    := -ffreestanding -std=gnu99 -Wall -Wextra -Werror -I src/arch/$(ARCH)
 LDFLAGS   := -ffreestanding -nostdlib -lgcc -T src/arch/$(ARCH)/linker.ld
 QEMUFLAGS := -kernel $(BUILDDIR)/$(IMG) -serial mon:stdio -s -m 1G
 
-all: qemu
+all: $(BUILDDIR)/$(IMG)
 
 $(BUILDDIR)/$(IMG): $(OBJ)
 	$(CC) $^ -o $@ $(LDFLAGS)
