@@ -34,7 +34,7 @@ enum IDT_ATTRIBUTES {
 };
 
 void int_init();
-void int_encode_idt(struct idt_entry idt[], int i, uint32_t offset, uint16_t segment_selector, uint8_t attributes);
+void int_encode_idt(int i, uint32_t offset, uint16_t segment_selector, uint8_t attributes);
 void int_pic_init();
 
 #endif
