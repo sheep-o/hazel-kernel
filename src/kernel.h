@@ -17,6 +17,7 @@ struct k_ctx {
     // Should be enough... for now...
     struct mem_region available_mem[MEM_REGIONS_MAX];
     struct node *free_mem_head;
+    struct process *current_process;
 };
 
 #endif

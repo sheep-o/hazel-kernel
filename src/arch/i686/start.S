@@ -58,6 +58,23 @@ higher_half:
 halt:
     jmp halt
 
+.global jmp_ring3
+jmp_ring3:
+    mov +4(%esp), %ebx // stack pointer
+    mov +8(%esp), %ecx // instruction pointer
+    movw $0x23, %ax
+    mov %ax, %ds
+    mov %ax, %es
+    mov %ax, %fs
+    mov %ax, %gs
+    // SS is handled by iret
+    push $0x23
+    push %ebx
+    pushf
+    push $0x1B
+    push %ecx
+    iret
+
 .global pit_isr
 pit_isr:
     pusha
@@ -163,6 +180,7 @@ isr_stub_table:
 .long isr_stub_30
 .long isr_stub_31
 
+.global gdt
 gdt:
 gdt_null:
     .quad 0
@@ -180,6 +198,22 @@ gdt_data:
     .byte 0b10010010
     .byte 0b11001111
     .byte 0
+gdt_user_code:
+    .word 0xffff
+    .word 0x0000
+    .byte 0x00
+    .byte 0b11111010
+    .byte 0b11001111
+    .byte 0x00
+gdt_user_data:
+    .word 0xffff
+    .word 0x0000
+    .byte 0x00
+    .byte 0b11110010
+    .byte 0b11001111
+    .byte 0x00
+tss:
+    .quad 0
 gdt_end:
 
 gdtp:

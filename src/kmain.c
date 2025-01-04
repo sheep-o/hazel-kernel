@@ -3,8 +3,8 @@
 #include <timer.h>
 #include <uart.h>
 #include <heap.h>
+#include <user.h>
 #include "kernel.h"
-#include "printf.h"
 
 struct k_ctx ctx = {};
 
@@ -13,9 +13,7 @@ void kmain(void) {
     int_init();
     uart_init();
     heap_init();
-
-    void *test = heap_alloc(0x100000);
-    printf("1 MiB allocated at 0x%08X\n", test);
+    user_init();
 
     while (1);
 }
