@@ -12,13 +12,20 @@ add_executable(kernel ${SOURCES})
 target_include_directories(kernel PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/src/arch/${ARCH})
 target_link_libraries(kernel gcc)
 
+add_subdirectory(init-mod)
+
 add_custom_command(
         OUTPUT  ${CMAKE_CURRENT_SOURCE_DIR}/Hazel.iso
+
         DEPENDS kernel
+        DEPENDS init-mod
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/boot/grub/grub.cfg
+
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMAND wsl rm -rf Hazel.iso boot/kernel.elf
+
+        COMMAND wsl rm -rf Hazel.iso boot/kernel.elf boot/init-mod.elf
         COMMAND "${CMAKE_COMMAND}" -E copy ${CMAKE_CURRENT_BINARY_DIR}/kernel.elf ${CMAKE_CURRENT_SOURCE_DIR}/boot
+        COMMAND "${CMAKE_COMMAND}" -E copy ${CMAKE_CURRENT_BINARY_DIR}/init-mod/init-mod.elf ${CMAKE_CURRENT_SOURCE_DIR}/boot
         COMMAND wsl grub-mkrescue -o Hazel.iso .
 )
 
