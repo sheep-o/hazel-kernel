@@ -1,4 +1,5 @@
 #include "multiboot.h"
+#include "uart.h"
 #include "../../kernel.h"
 
 #define CHECK_FLAG(x, n) ((x & (1 << n)))
@@ -8,6 +9,11 @@ extern void kmain(void);
 void bootstrap(multiboot_info_t *info) {
     // Halt if memory map isn't provided
     if (!CHECK_FLAG(info->flags, 6)) return;
+    if (info->mods_count < 1) {
+        uart_init();
+        uart_puts("No modules have been loaded. Cannot continue...");
+        return;
+    }
 
     extern char KERNEL_END;
     uint32_t kernel_start = 0x100000;
