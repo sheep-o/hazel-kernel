@@ -14,6 +14,10 @@ target_link_libraries(kernel gcc)
 
 add_subdirectory(init-mod)
 
+if (CMAKE_HOST_WIN32)
+    set(WSL "wsl")
+endif()
+
 add_custom_command(
         OUTPUT  ${CMAKE_CURRENT_SOURCE_DIR}/Hazel.iso
 
@@ -23,10 +27,10 @@ add_custom_command(
 
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 
-        COMMAND wsl rm -rf Hazel.iso boot/kernel.elf boot/init-mod.elf
+        COMMAND ${WSL} rm -rf Hazel.iso boot/kernel.elf boot/init-mod.elf
         COMMAND "${CMAKE_COMMAND}" -E copy ${CMAKE_CURRENT_BINARY_DIR}/kernel.elf ${CMAKE_CURRENT_SOURCE_DIR}/boot
         COMMAND "${CMAKE_COMMAND}" -E copy ${CMAKE_CURRENT_BINARY_DIR}/init-mod/init-mod.elf ${CMAKE_CURRENT_SOURCE_DIR}/boot
-        COMMAND wsl grub-mkrescue -o Hazel.iso .
+        COMMAND ${WSL} grub-mkrescue -o Hazel.iso .
 )
 
 add_custom_target(iso

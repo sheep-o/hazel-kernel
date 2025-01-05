@@ -4,3 +4,4 @@ compile_commands.json
 *.txt
 .gdb_history
 boot/kernel.elf
+boot/init-mod.elf
