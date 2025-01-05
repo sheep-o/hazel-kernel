@@ -21,7 +21,7 @@ void user(void) {
 
 void user_init(void) {
     // TODO: Use a whole page table (4 mib) for the stack
-    void *stack = heap_alloc(0x1000) + 0x1000;
+    void *stack = heap_alloc(0x1000, false) + 0x1000;
     extern uint32_t boot_page_dir[1024];
     // Map the stack right under kernel space because the stack grows toward lower memory
     boot_page_dir[PAGE_DIR_INDEX(0xC0000000 - 1)] = ((uint32_t)&cool_page_tab - 0xC0000000) | 7;

@@ -53,9 +53,10 @@ void un_idmap(uint32_t addr) {
  * Traverses the free list for a memory region that can provide the requested number of bytes.
  * Note that the free region must be able to hold the length AND a res_hdr.
  * @param len The number of bytes to allocate
+ * @param page_aligned If the allocated memory should be aligned to a page
  * @return  A nonzero pointer to the allocated memory if successful
  */
-void *heap_alloc(uint32_t len) {
+void *heap_alloc(uint32_t len, bool page_aligned) {
     int i = 0;
     struct node *prev = 0;
     struct node *tmp = ctx.free_mem_head;
@@ -63,8 +64,10 @@ void *heap_alloc(uint32_t len) {
     while (tmp || i == 0) {
         i++;
 
-        uint32_t req_size = len + sizeof(struct res_hdr);
         idmap((uint32_t)tmp);
+
+        uint32_t padding = (0x1000 - (((uint32_t)tmp + sizeof(struct res_hdr)) & 0xFFF)) * page_aligned;
+        uint32_t req_size = sizeof(struct res_hdr) + padding + len;
 
         if (tmp->size > req_size) {
             uint32_t addr = (uint32_t)tmp + sizeof(struct res_hdr);
@@ -85,7 +88,7 @@ void *heap_alloc(uint32_t len) {
 
             un_idmap((uint32_t)tmp);
             un_idmap((uint32_t)new_hdr);
-            return (void *)addr;
+            return (void *)(addr + padding);
         }
 
         if (tmp->size == len + sizeof(struct res_hdr)) {
