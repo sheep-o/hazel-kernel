@@ -64,7 +64,8 @@ void *heap_alloc(uint32_t len, bool page_aligned) {
     while (tmp || i == 0) {
         i++;
 
-        idmap((uint32_t)tmp);
+        tmp_page_tab[PAGE_TAB_INDEX(tmp)] = ((uint32_t)tmp & 0xfffff000) | 7;
+        boot_page_dir[PAGE_DIR_INDEX(tmp)] = ((uint32_t) &tmp_page_tab - 0xC0000000) | 7;
 
         uint32_t padding = (0x1000 - (((uint32_t)tmp + sizeof(struct res_hdr)) & 0xFFF)) * page_aligned;
         uint32_t req_size = sizeof(struct res_hdr) + padding + len;
@@ -83,7 +84,7 @@ void *heap_alloc(uint32_t len, bool page_aligned) {
             } else {
                 idmap((uint32_t)prev);
                 prev->next = (struct node *)((uint32_t)tmp + req_size);
-                un_idmap((uint32_t)prev);
+                un_idmap((uint32_t) prev);
             }
 
             un_idmap((uint32_t)tmp);

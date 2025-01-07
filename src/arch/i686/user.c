@@ -4,31 +4,54 @@
 
 struct tss_entry tss = {0};
 
-// TODO: dynamically allocate 4kb aligned page tables and directories for new processes
 // TODO: Retrieve init program from external source such as grub module
-
-// Temporary page table for init process
-// Remove this after ability to dynamically allocate page tables is done
-uint32_t cool_page_tab[1024] __attribute__((aligned(0x1000)));
 
 #define PAGE_DIR_INDEX(x) ((((uint32_t)x) >> 22) & 0x3FF)
 #define PAGE_TAB_INDEX(x) ((((uint32_t)x) >> 12) & 0x3FF)
 #define PAGE_OFFSET(x) (((uint32_t)x) & 0xFFF)
 
+extern uint32_t boot_page_dir[1024];
+extern uint32_t boot_page_tab[1024];
+extern uint32_t tmp_page_tab[1024];
+
+// Temp user mode entry point
+// Remove this once we parse the init module elf
+__attribute__((aligned(0x1000)))
 void user(void) {
     while (1);
 }
 
 void user_init(void) {
-    // TODO: Use a whole page table (4 mib) for the stack
-    void *stack = heap_alloc(0x1000, false) + 0x1000;
-    extern uint32_t boot_page_dir[1024];
-    // Map the stack right under kernel space because the stack grows toward lower memory
-    boot_page_dir[PAGE_DIR_INDEX(0xC0000000 - 1)] = ((uint32_t)&cool_page_tab - 0xC0000000) | 7;
-    cool_page_tab[PAGE_TAB_INDEX(0xC0000000 - 1)] = ((uint32_t)stack & 0xFFFF000) | 7;
+    uint32_t upage_dir = (uint32_t)heap_alloc(0x1000, true);
+    uint32_t ucode_tab = (uint32_t)heap_alloc(0x1000, true);
+    uint32_t ustack_tab = (uint32_t)heap_alloc(0x1000, true);
+    uint32_t stack_bottom = (uint32_t)heap_alloc(0x400000, true);
 
-    boot_page_dir[PAGE_DIR_INDEX(0)] = ((uint32_t)&cool_page_tab - 0xC0000000) | 7;
-    cool_page_tab[PAGE_TAB_INDEX(0)] = ((uint32_t)user & 0xFFFF000) | 7;
+    // Map page directory to 0x1000
+    boot_page_dir[PAGE_DIR_INDEX(0x1000)] = ((uint32_t)&tmp_page_tab - 0xC0000000) | 7;
+    tmp_page_tab[PAGE_TAB_INDEX(0x1000)] = upage_dir | 7;
+    // Map code table to 0x2000
+    tmp_page_tab[PAGE_TAB_INDEX(0x2000)] = ucode_tab | 7;
+    // Map stack table to 0x3000
+    tmp_page_tab[PAGE_TAB_INDEX(0x3000)] = ustack_tab | 7;
+
+    uint32_t *page_dir = (uint32_t *)0x1000;
+    uint32_t *code_tab = (uint32_t *)0x2000;
+    uint32_t *stack_tab = (uint32_t *)0x3000;
+
+    // Map kernel
+    page_dir[PAGE_DIR_INDEX(0xC0000000)] = ((uint32_t)boot_page_tab - 0xC0000000) | 7;
+
+    // Map 4mib of stack space under the kernel
+    page_dir[PAGE_DIR_INDEX(0xC0000000 - 1)] = ustack_tab | 7;
+    for (int i = 0; i < 1024; i++)
+        stack_tab[PAGE_TAB_INDEX(0xBFC00000 + i*0x1000)] = (stack_bottom + i*0x1000) | 7;
+
+    // Map the code to start of virtual memory
+    page_dir[PAGE_DIR_INDEX(0)] = ucode_tab | 7;
+    code_tab[PAGE_TAB_INDEX(0)] = ((uint32_t)user - 0xC0000000) | 7;
+
+    asm volatile("mov %0, %%cr3" : : "r"(upage_dir) : "memory");
 
     // TODO: Improve readability... no 'magic' values
     uint32_t base = (uint32_t)&tss;
@@ -53,5 +76,5 @@ void user_init(void) {
     tss.ss = 0x23;
     asm volatile("ltr %%ax" : : "a"(5 << 3));
 
-    jmp_ring3(0xC0000000 - 1, PAGE_OFFSET(user));
+    jmp_ring3(0xC0000000 - 0x4, 0);
 }

@@ -60,8 +60,8 @@ halt:
 
 .global jmp_ring3
 jmp_ring3:
-    mov +4(%esp), %ebx // stack pointer
-    mov +8(%esp), %ecx // instruction pointer
+    mov 4(%esp), %ebx // stack pointer
+    mov 8(%esp), %ecx // instruction pointer
     movw $0x23, %ax
     mov %ax, %ds
     mov %ax, %es
@@ -138,6 +138,7 @@ isr_err_stub    30
 isr_no_err_stub 31
 
 .section .data
+.global boot_page_tab
 boot_page_tab:
 .fill 1024, 4, 0
 
