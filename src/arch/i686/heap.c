@@ -64,6 +64,8 @@ void *heap_alloc(uint32_t len, bool page_aligned) {
     while (tmp || i == 0) {
         i++;
 
+        uint32_t o_tab_tmp = tmp_page_tab[PAGE_TAB_INDEX(tmp)];
+        uint32_t o_dir_tmp = boot_page_dir[PAGE_DIR_INDEX(tmp)];
         tmp_page_tab[PAGE_TAB_INDEX(tmp)] = ((uint32_t)tmp & 0xfffff000) | 7;
         boot_page_dir[PAGE_DIR_INDEX(tmp)] = ((uint32_t) &tmp_page_tab - 0xC0000000) | 7;
 
@@ -75,20 +77,33 @@ void *heap_alloc(uint32_t len, bool page_aligned) {
             tmp->size -= req_size;
 
             struct node *new_hdr = (struct node *)((uint32_t)tmp + req_size);
+
+            uint32_t o_dir_hdr = boot_page_dir[PAGE_DIR_INDEX(new_hdr)];
+            uint32_t o_tab_hdr = boot_page_dir[PAGE_TAB_INDEX(new_hdr)];
             idmap((uint32_t)new_hdr);
+
             new_hdr->size = tmp->size;
             new_hdr->next = tmp->next;
 
             if (i == 1) {
                 ctx.free_mem_head = new_hdr;
             } else {
+                uint32_t o_dir_prev = boot_page_dir[PAGE_DIR_INDEX(prev)];
+                uint32_t o_tab_prev = tmp_page_tab[PAGE_TAB_INDEX(prev)];
                 idmap((uint32_t)prev);
+
                 prev->next = (struct node *)((uint32_t)tmp + req_size);
-                un_idmap((uint32_t) prev);
+
+                boot_page_dir[PAGE_DIR_INDEX(prev)] = o_dir_prev;
+                tmp_page_tab[PAGE_TAB_INDEX(prev)] = o_tab_prev;
             }
 
-            un_idmap((uint32_t)tmp);
-            un_idmap((uint32_t)new_hdr);
+            boot_page_dir[PAGE_DIR_INDEX(new_hdr)] = o_dir_tmp;
+            tmp_page_tab[PAGE_TAB_INDEX(new_hdr)] = o_tab_tmp;
+
+            boot_page_dir[PAGE_DIR_INDEX(new_hdr)] = o_dir_hdr;
+            tmp_page_tab[PAGE_TAB_INDEX(new_hdr)] = o_tab_hdr;
+
             return (void *)(addr + padding);
         }
 
