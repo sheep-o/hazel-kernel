@@ -15,6 +15,9 @@ void bootstrap(multiboot_info_t *info) {
         return;
     }
 
+    multiboot_module_t *mods = (multiboot_module_t *)(info->mods_addr + 0xC0000000);
+    ctx.init_elf = (elf_t *)(mods[0].mod_start + 0xC0000000);
+
     extern char KERNEL_END;
     uint32_t kernel_start = 0x100000;
     uint32_t kernel_end = (uint32_t)&KERNEL_END - 0xC0000000;

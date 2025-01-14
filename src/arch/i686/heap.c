@@ -31,8 +31,8 @@ void heap_init(void) {
                 n->next = 0;
             }
 
-            boot_page_dir[0] = 2;
             asm volatile("invlpg (%0)" : : "r"(0) : "memory");
+            boot_page_dir[0] = 2;
         }
     }
 
@@ -94,13 +94,12 @@ void *heap_alloc(uint32_t len, bool page_aligned) {
 
                 prev->next = (struct node *)((uint32_t)tmp + req_size);
 
+                asm volatile("invlpg (%0)" : : "r"(prev) : "memory");
                 boot_page_dir[PAGE_DIR_INDEX(prev)] = o_dir_prev;
                 tmp_page_tab[PAGE_TAB_INDEX(prev)] = o_tab_prev;
             }
 
-            boot_page_dir[PAGE_DIR_INDEX(new_hdr)] = o_dir_tmp;
-            tmp_page_tab[PAGE_TAB_INDEX(new_hdr)] = o_tab_tmp;
-
+            asm volatile("invlpg (%0)" : : "r"(new_hdr) : "memory");
             boot_page_dir[PAGE_DIR_INDEX(new_hdr)] = o_dir_hdr;
             tmp_page_tab[PAGE_TAB_INDEX(new_hdr)] = o_tab_hdr;
 
@@ -114,7 +113,10 @@ void *heap_alloc(uint32_t len, bool page_aligned) {
 
         prev = tmp;
         tmp = tmp->next;
-        un_idmap((uint32_t) prev);
+
+        asm volatile("invlpg (%0)" : : "r"(prev) : "memory");
+        boot_page_dir[PAGE_DIR_INDEX(prev)] = o_dir_tmp;
+        tmp_page_tab[PAGE_TAB_INDEX(prev)] = o_tab_tmp;
     }
 
     return 0;

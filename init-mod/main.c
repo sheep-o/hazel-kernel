@@ -1,3 +1,3 @@
 void _start(void) {
-  asm volatile ("hlt" ::);
+    while (1);
 }
