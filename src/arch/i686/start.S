@@ -82,6 +82,13 @@ pit_isr:
     popa
     iret
 
+.global syscall_isr
+syscall_isr:
+    pusha
+    call syscall_handler
+    popa
+    iret
+
 .macro isr_err_stub i=0
     isr_stub_\i:
         cli

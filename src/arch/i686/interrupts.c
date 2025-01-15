@@ -13,12 +13,14 @@ void int_encode_idt(int i, uint32_t offset, uint16_t segment_selector, uint8_t a
 }
 
 extern void pit_isr();
+extern void syscall_isr();
 void int_init() {
     for (int i = 0; i < 32; i++) {
         int_encode_idt(i, isr_stub_table[i], 0x8, INT_PRESENT | TRAP_GATE_32 | INT_RING0);
     }
 
     int_encode_idt(32, (uint32_t)pit_isr, 0x8, INT_PRESENT | INT_GATE_32 | INT_RING0);
+    int_encode_idt(0x80, (uint32_t)syscall_isr, 0x8, INT_PRESENT | INT_GATE_32 | INT_RING3);
 
     struct idtr _idtr = {
         .base = (uint32_t)idt,
