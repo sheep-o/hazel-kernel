@@ -3,25 +3,25 @@
 
 extern struct k_ctx ctx;
 extern uint32_t boot_page_dir[1024];
-extern char KERNEL_END;
+extern const char KERNEL_END;
 
 #define PAGE_DIR_INDEX(x) ((((uint32_t)x) >> 22) & 0x3FF)
 #define PAGE_TAB_INDEX(x) ((((uint32_t)x) >> 12) & 0x3FF)
 #define PAGE_OFFSET(x) (((uint32_t)x) & 0xFFF)
 
-uint32_t tmp_page_tab[1024] __attribute__((aligned(0x1000)));
+uint32_t tmp_page_tab[1024] __attribute__((aligned(PAGE_SIZE)));
 
 /**
  * Iterates through the available memory array and constructs a linked list of free memory regions.
  */
 void heap_init(void) {
     for (int i = 0; i < MEM_REGIONS_MAX; i++) {
-        uint32_t start = ctx.available_mem[i].start;
-        uint32_t size = ctx.available_mem[i].size;
+        const uint32_t start = ctx.available_mem[i].start;
+        const uint32_t size = ctx.available_mem[i].size;
         if (size > 0) {
             // Temporarily map the start of the region to 0x0 for writing
             tmp_page_tab[0] = (start & 0xfffff000) | 7;
-            boot_page_dir[0] = ((uint32_t)&tmp_page_tab - 0xC0000000) | 7;
+            boot_page_dir[0] = ((uint32_t)&tmp_page_tab - KERNEL_VMA) | 7;
 
             struct node *n = (struct node *)(0 + PAGE_OFFSET(start));
             n->size = size;
@@ -41,7 +41,7 @@ void heap_init(void) {
 
 void idmap(uint32_t addr) {
     tmp_page_tab[PAGE_TAB_INDEX(addr)] = (addr & 0xfffff000) | 7;
-    boot_page_dir[PAGE_DIR_INDEX(addr)] = ((uint32_t)&tmp_page_tab - 0xC0000000) | 7;
+    boot_page_dir[PAGE_DIR_INDEX(addr)] = ((uint32_t)&tmp_page_tab - KERNEL_VMA) | 7;
 }
 void un_idmap(uint32_t addr) {
     tmp_page_tab[PAGE_TAB_INDEX(addr)] = 2;
@@ -64,22 +64,22 @@ void *heap_alloc(uint32_t len, bool page_aligned) {
     while (tmp || i == 0) {
         i++;
 
-        uint32_t o_tab_tmp = tmp_page_tab[PAGE_TAB_INDEX(tmp)];
-        uint32_t o_dir_tmp = boot_page_dir[PAGE_DIR_INDEX(tmp)];
+        const uint32_t o_tab_tmp = tmp_page_tab[PAGE_TAB_INDEX(tmp)];
+        const uint32_t o_dir_tmp = boot_page_dir[PAGE_DIR_INDEX(tmp)];
         tmp_page_tab[PAGE_TAB_INDEX(tmp)] = ((uint32_t)tmp & 0xfffff000) | 7;
-        boot_page_dir[PAGE_DIR_INDEX(tmp)] = ((uint32_t) &tmp_page_tab - 0xC0000000) | 7;
+        boot_page_dir[PAGE_DIR_INDEX(tmp)] = ((uint32_t) &tmp_page_tab - KERNEL_VMA) | 7;
 
-        uint32_t padding = (0x1000 - (((uint32_t)tmp + sizeof(struct res_hdr)) & 0xFFF)) * page_aligned;
-        uint32_t req_size = sizeof(struct res_hdr) + padding + len;
+        const uint32_t padding = (PAGE_SIZE - (((uint32_t)tmp + sizeof(struct res_hdr)) & 0xFFF)) * page_aligned;
+        const uint32_t req_size = sizeof(struct res_hdr) + padding + len;
 
         if (tmp->size > req_size) {
-            uint32_t addr = (uint32_t)tmp + sizeof(struct res_hdr);
+            const uint32_t addr = (uint32_t)tmp + sizeof(struct res_hdr);
             tmp->size -= req_size;
 
-            struct node *new_hdr = (struct node *)((uint32_t)tmp + req_size);
+            struct node *const new_hdr = (struct node *)((uint32_t)tmp + req_size);
 
-            uint32_t o_dir_hdr = boot_page_dir[PAGE_DIR_INDEX(new_hdr)];
-            uint32_t o_tab_hdr = boot_page_dir[PAGE_TAB_INDEX(new_hdr)];
+            const uint32_t o_dir_hdr = boot_page_dir[PAGE_DIR_INDEX(new_hdr)];
+            const uint32_t o_tab_hdr = boot_page_dir[PAGE_TAB_INDEX(new_hdr)];
             idmap((uint32_t)new_hdr);
 
             new_hdr->size = tmp->size;
@@ -88,8 +88,8 @@ void *heap_alloc(uint32_t len, bool page_aligned) {
             if (i == 1) {
                 ctx.free_mem_head = new_hdr;
             } else {
-                uint32_t o_dir_prev = boot_page_dir[PAGE_DIR_INDEX(prev)];
-                uint32_t o_tab_prev = tmp_page_tab[PAGE_TAB_INDEX(prev)];
+                const uint32_t o_dir_prev = boot_page_dir[PAGE_DIR_INDEX(prev)];
+                const uint32_t o_tab_prev = tmp_page_tab[PAGE_TAB_INDEX(prev)];
                 idmap((uint32_t)prev);
 
                 prev->next = (struct node *)((uint32_t)tmp + req_size);

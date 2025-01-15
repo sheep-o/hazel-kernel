@@ -3,7 +3,7 @@
 
 uint8_t uart_init(void) {
     // Test COM1 by seeing if scratch register can store a value
-    uint8_t old_scratch = inb(COM1 + 7);
+    const uint8_t old_scratch = inb(COM1 + 7);
     outb(COM1 + 7, old_scratch + 1);
     if (inb(COM1 + 7) != old_scratch + 1) {
         return 0;

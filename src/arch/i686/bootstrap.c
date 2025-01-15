@@ -6,40 +6,71 @@
 
 extern struct k_ctx ctx;
 extern void kmain(void);
-void bootstrap(multiboot_info_t *info) {
-    // Halt if memory map isn't provided
-    if (!CHECK_FLAG(info->flags, 6)) return;
-    if (info->mods_count < 1) {
+void bootstrap(const multiboot_info_t *info) {
+    if (!CHECK_FLAG(info->flags, 6)) {
         uart_init();
-        uart_puts("No modules have been loaded. Cannot continue...");
+        uart_puts("Memory map not provided by bootloader. Cannot continue...\n");
         return;
     }
 
-    multiboot_module_t *mods = (multiboot_module_t *)(info->mods_addr + 0xC0000000);
-    ctx.init_elf = (elf_t *)(mods[0].mod_start + 0xC0000000);
+    if (info->mods_count < 1) {
+        uart_init();
+        uart_puts("No modules have been loaded. Cannot continue...\n");
+        return;
+    }
 
-    extern char KERNEL_END;
-    uint32_t kernel_start = 0x100000;
-    uint32_t kernel_end = (uint32_t)&KERNEL_END - 0xC0000000;
+    const multiboot_module_t *mods = (multiboot_module_t *)(KERNEL_VMA + info->mods_addr);
+    ctx.init_elf = (Elf32_Ehdr *)(KERNEL_VMA + mods[0].mod_start);
+    if (ctx.init_elf->e_ident[EI_MAG0] != ELFMAG0 ||
+        ctx.init_elf->e_ident[EI_MAG1] != ELFMAG1 ||
+        ctx.init_elf->e_ident[EI_MAG2] != ELFMAG2 ||
+        ctx.init_elf->e_ident[EI_MAG3] != ELFMAG3) {
+        uart_init();
+        uart_puts("Init module has an invalid ELF header. Cannot continue...\n");
+        return;
+    }
 
+    if (ctx.init_elf->e_ident[EI_CLASS] != ELFCLASS32) {
+        uart_init();
+        uart_puts("Init module is not 32-bit. Cannot continue...\n");
+        return;
+    }
+
+    extern const char KERNEL_END;
+    const uint32_t kernel_start = KERNEL_LMA;
+    const uint32_t kernel_end = (uint32_t)&KERNEL_END - KERNEL_VMA;
+
+    uint32_t total_memory = 0;
     int available_count = 0;
-    uint32_t mmap_base = info->mmap_addr + 0xC0000000;
-    multiboot_memory_map_t *mmap = (multiboot_memory_map_t *)mmap_base;
+    const uint32_t mmap_base = KERNEL_VMA + info->mmap_addr;
+    const multiboot_memory_map_t *mmap = (multiboot_memory_map_t *)mmap_base;
     for (int i = 0; i*sizeof(multiboot_memory_map_t) < info->mmap_length && available_count < MEM_REGIONS_MAX; i++) {
         if (mmap[i].type == MULTIBOOT_MEMORY_AVAILABLE) {
-            uint32_t start = (uint32_t)mmap[i].addr;
-            uint32_t size = (uint32_t)mmap[i].len;
+            uint32_t start = mmap[i].addr;
+            uint32_t size = mmap[i].len;
 
             if (start >= kernel_start && start < kernel_end) {
-                uint32_t diff = kernel_end - start;
+                const uint32_t diff = kernel_end - start;
                 size -= diff;
                 start = kernel_end;
+            }
+
+            // Add padding because I'm having weird things happen while writing to low memory addresses
+            if (start == 0 && size > 0x5000) {
+                start += 0x5000;
             }
 
             ctx.available_mem[available_count].size = size;
             ctx.available_mem[available_count].start = start;
             available_count++;
+            total_memory += size;
         }
+    }
+
+    if (total_memory < 0x100000 * 400) {
+        uart_init();
+        uart_puts("Need at least 400 MiB of free memory. Cannot continue...\n");
+        return;
     }
 
     kmain();

@@ -28,45 +28,40 @@ void *memcpy(void *dest, const void *src, int n) {
 }
 
 void user_init(void) {
-    uint32_t upage_dir = (uint32_t)heap_alloc(0x1000, true);
-    uint32_t ucode_tab = (uint32_t)heap_alloc(0x1000, true);
-    uint32_t ustack_tab = (uint32_t)heap_alloc(0x1000, true);
-    uint32_t stack_bottom = (uint32_t)heap_alloc(0x400000, true);
+    const uint32_t upage_dir = (uint32_t)heap_alloc(0x1000, true);
+    const uint32_t ucode_tab = (uint32_t)heap_alloc(0x1000, true);
+    const uint32_t ustack_tab = (uint32_t)heap_alloc(0x1000, true);
+    const uint32_t stack_bottom = (uint32_t)heap_alloc(0x400000, true);
 
-    asm volatile("invlpg (%0)" : : "r"(0x1000) : "memory");
-    asm volatile("invlpg (%0)" : : "r"(0x2000) : "memory");
-    asm volatile("invlpg (%0)" : : "r"(0x3000) : "memory");
     // Map page directory to 0x1000
-    boot_page_dir[PAGE_DIR_INDEX(0x1000)] = ((uint32_t)&tmp_page_tab - 0xC0000000) | 7;
+    boot_page_dir[PAGE_DIR_INDEX(0x1000)] = ((uint32_t)&tmp_page_tab - KERNEL_VMA) | 7;
     tmp_page_tab[PAGE_TAB_INDEX(0x1000)] = upage_dir | 7;
     // Map code table to 0x2000
     tmp_page_tab[PAGE_TAB_INDEX(0x2000)] = ucode_tab | 7;
     // Map stack table to 0x3000
     tmp_page_tab[PAGE_TAB_INDEX(0x3000)] = ustack_tab | 7;
 
-    uint32_t *page_dir = (uint32_t *)0x1000;
-    uint32_t *code_tab = (uint32_t *)0x2000;
-    uint32_t *stack_tab = (uint32_t *)0x3000;
+    uint32_t *const page_dir = (uint32_t *)0x1000;
+    uint32_t *const code_tab = (uint32_t *)0x2000;
+    uint32_t *const stack_tab = (uint32_t *)0x3000;
 
     // Map kernel
-    page_dir[PAGE_DIR_INDEX(0xC0000000)] = ((uint32_t)boot_page_tab - 0xC0000000) | 7;
+    page_dir[PAGE_DIR_INDEX(0xC0000000)] = ((uint32_t)boot_page_tab - KERNEL_VMA) | 7;
 
     // Map 4mib of stack space under the kernel
     page_dir[PAGE_DIR_INDEX(0xC0000000 - 1)] = ustack_tab | 7;
-    for (int i = 0; i < 1024; i++)
-        stack_tab[PAGE_TAB_INDEX(0xBFC00000 + i*0x1000)] = (stack_bottom + i*0x1000) | 7;
+    for (int i = 0; i < 1024*PAGE_SIZE; i += PAGE_SIZE)
+        stack_tab[PAGE_TAB_INDEX(0xBFC00000 + i)] = (stack_bottom + i) | 7;
 
     // Map the load sections
-    // TODO: Make this process not use two for loops
-    phdr_t *phdr = (phdr_t *)((uint32_t)ctx.init_elf + ctx.init_elf->e_phoff);
+    const Elf32_Phdr *phdr = (Elf32_Phdr *)((uint32_t)ctx.init_elf + ctx.init_elf->e_phoff);
     for (int i = 0; i < ctx.init_elf->e_phnum; i++) {
         if (phdr[i].p_type == PT_LOAD) {
-            uint8_t *s = (uint8_t *)heap_alloc(phdr[i].p_filesz, true);
-            asm volatile("invlpg (%0)" : : "r"(0x2000) : "memory");
+            const uint32_t s = (uint32_t)heap_alloc(phdr[i].p_filesz, true);
 
             // Map the ELF image to its specified entry
             page_dir[PAGE_DIR_INDEX(phdr[i].p_vaddr)] = ucode_tab | 7;
-            code_tab[PAGE_TAB_INDEX(phdr[i].p_vaddr)] = (uint32_t)s | 7;
+            code_tab[PAGE_TAB_INDEX(phdr[i].p_vaddr)] = s | 7;
         }
     }
     asm volatile("mov %0, %%cr3" :: "r"(upage_dir) : "memory");
@@ -78,8 +73,8 @@ void user_init(void) {
     }
 
     // TODO: Improve readability... no 'magic' values
-    uint32_t base = (uint32_t)&tss;
-    uint32_t limit = base + sizeof(struct tss_entry);
+    const uint32_t base = (uint32_t)&tss;
+    const uint32_t limit = base + sizeof(struct tss_entry);
     gdt[5].base_low = base & 0xFFFF;
     gdt[5].base_middle = (base >> 16) & 0xFF;
     gdt[5].base_high = (base >> 24) & 0xFF;
@@ -102,7 +97,7 @@ void user_init(void) {
 
     struct process p = {
             .ip = ctx.init_elf->e_entry,
-            .sp = 0xC0000000 - 0x4,
+            .sp = KERNEL_VMA - 0x4,
             .page_directory = upage_dir,
     };
 

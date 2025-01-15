@@ -22,7 +22,7 @@ void int_init() {
     int_encode_idt(32, (uint32_t)pit_isr, 0x8, INT_PRESENT | INT_GATE_32 | INT_RING0);
     int_encode_idt(0x80, (uint32_t)syscall_isr, 0x8, INT_PRESENT | INT_GATE_32 | INT_RING3);
 
-    struct idtr _idtr = {
+    const struct idtr _idtr = {
         .base = (uint32_t)idt,
         .size = (sizeof(struct idt_entry) * 256) - 1
     };
