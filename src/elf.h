@@ -1,3 +1,6 @@
+#ifndef HAZEL_ELF_H_
+#define HAZEL_ELF_H_
+
 typedef uint16_t Elf32_Half;
 typedef uint16_t Elf64_Half;
 
@@ -574,3 +577,5 @@ typedef struct
 /* Legal values for the note segment descriptor types for object files.  */
 
 #define NT_VERSION  1       /* Contains a version string.  */
+
+#endif
