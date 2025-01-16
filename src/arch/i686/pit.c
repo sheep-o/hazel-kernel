@@ -1,8 +1,8 @@
-#include "timer.h"
-#include "io.h"
-#include "pic.h"
+#include <timer.h>
+#include <io.h>
+#include <pic.h>
 #include <stdint.h>
-#include "../../kernel.h"
+#include <kernel.h>
 
 void tmr_init(void) {
     outb(PIT_MODE_CMD, PIT_CHAN0 | PIT_LOHIGH | PIT_MODE2);

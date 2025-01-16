@@ -4,7 +4,7 @@
 #include <uart.h>
 #include <heap.h>
 #include <user.h>
-#include "kernel.h"
+#include <kernel.h>
 
 struct k_ctx ctx = {};
 

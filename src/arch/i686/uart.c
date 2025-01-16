@@ -1,13 +1,12 @@
-#include "uart.h"
-#include "io.h"
+#include <uart.h>
+#include <io.h>
+#include <util.h>
 
 uint8_t uart_init(void) {
     // Test COM1 by seeing if scratch register can store a value
     const uint8_t old_scratch = inb(COM1 + 7);
     outb(COM1 + 7, old_scratch + 1);
-    if (inb(COM1 + 7) != old_scratch + 1) {
-        return 0;
-    }
+    ASSERT(inb(COM1 + 7) == old_scratch + 1, "COM1 scratch register failed to hold a value");
     outb(COM1 + 7, old_scratch);
 
     outb(COM1 + 1, 0x00);    // Disable all interrupts
@@ -21,9 +20,7 @@ uint8_t uart_init(void) {
     outb(COM1 + 0, 0xAE);    // Test serial chip (send byte 0xAE and check if serial returns same byte)
 
     // Check if serial is faulty (i.e: not same byte as sent)
-    if(inb(COM1 + 0) != 0xAE) {
-        return 0;
-    }
+    ASSERT(inb(COM1 + 0) == 0xAE, "COM1 loopback mode test failed");
 
     // If serial is not faulty set it in normal operation mode
     // (not-loopback with IRQs enabled and OUT#1 and OUT#2 bits enabled)

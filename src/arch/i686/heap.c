@@ -1,5 +1,5 @@
-#include "heap.h"
-#include "../../kernel.h"
+#include <heap.h>
+#include <kernel.h>
 
 extern struct k_ctx ctx;
 extern uint32_t boot_page_dir[1024];

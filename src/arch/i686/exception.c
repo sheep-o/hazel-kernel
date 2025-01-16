@@ -1,5 +1,5 @@
 #include <exception.h>
-#include "../../printf.h"
+#include <printf.h>
 
 void exception_handler(struct ex_frame r) {
     printf("Exception 0x%X (0x%X) has occurred\nEAX: 0x%08X\nECX: 0x%08X\nEDX: 0x%08X\nEBX: 0x%08X\nESI: 0x%08X\nEDI: 0x%08X\nEBP: 0x%08X\nESP: 0x%08X\n",

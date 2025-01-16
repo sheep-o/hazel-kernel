@@ -1,5 +1,5 @@
-#include "interrupts.h"
-#include "pic.h"
+#include <interrupts.h>
+#include <pic.h>
 
 extern uint32_t isr_stub_table[32];
 struct idt_entry idt[IDT_MAX];

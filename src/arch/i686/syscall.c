@@ -1,5 +1,5 @@
-#include "syscall.h"
-#include "printf.h"
+#include <syscall.h>
+#include <printf.h>
 
 void syscall_handler(struct reg_frame regs) {
     switch (regs.eax) {

@@ -1,40 +1,26 @@
-#include "multiboot.h"
-#include "uart.h"
-#include "../../kernel.h"
+#include <multiboot.h>
+#include <uart.h>
+#include <kernel.h>
+#include <util.h>
 
 #define CHECK_FLAG(x, n) ((x & (1 << n)))
 
 extern struct k_ctx ctx;
 extern void kmain(void);
 void bootstrap(const multiboot_info_t *info) {
-    if (!CHECK_FLAG(info->flags, 6)) {
-        uart_init();
-        uart_puts("Memory map not provided by bootloader. Cannot continue...\n");
-        return;
-    }
-
-    if (info->mods_count < 1) {
-        uart_init();
-        uart_puts("No modules have been loaded. Cannot continue...\n");
-        return;
-    }
+    ASSERT(CHECK_FLAG(info->flags, 6), "Memory map must be provided by the bootloader");
+    ASSERT(info->mods_count > 0, "Init module must be provided by bootloader");
 
     const multiboot_module_t *mods = (multiboot_module_t *)(KERNEL_VMA + info->mods_addr);
     ctx.init_elf = (Elf32_Ehdr *)(KERNEL_VMA + mods[0].mod_start);
-    if (ctx.init_elf->e_ident[EI_MAG0] != ELFMAG0 ||
-        ctx.init_elf->e_ident[EI_MAG1] != ELFMAG1 ||
-        ctx.init_elf->e_ident[EI_MAG2] != ELFMAG2 ||
-        ctx.init_elf->e_ident[EI_MAG3] != ELFMAG3) {
-        uart_init();
-        uart_puts("Init module has an invalid ELF header. Cannot continue...\n");
-        return;
-    }
 
-    if (ctx.init_elf->e_ident[EI_CLASS] != ELFCLASS32) {
-        uart_init();
-        uart_puts("Init module is not 32-bit. Cannot continue...\n");
-        return;
-    }
+    ASSERT(ctx.init_elf->e_ident[EI_MAG0] == ELFMAG0
+        && ctx.init_elf->e_ident[EI_MAG1] == ELFMAG1
+        && ctx.init_elf->e_ident[EI_MAG2] == ELFMAG2
+        && ctx.init_elf->e_ident[EI_MAG3] == ELFMAG3,
+        "Init module has an invalid ELF header");
+
+    ASSERT(ctx.init_elf->e_ident[EI_CLASS] == ELFCLASS32, "Init module is not 32-bit");
 
     extern const char KERNEL_END;
     const uint32_t kernel_start = KERNEL_LMA;
@@ -67,11 +53,7 @@ void bootstrap(const multiboot_info_t *info) {
         }
     }
 
-    if (total_memory < 0x100000 * 400) {
-        uart_init();
-        uart_puts("Need at least 400 MiB of free memory. Cannot continue...\n");
-        return;
-    }
+    ASSERT(total_memory > 0x100000*400, "Need at least 400 MiB of free memory");
 
     kmain();
 }
