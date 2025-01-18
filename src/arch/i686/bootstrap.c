@@ -44,6 +44,7 @@ void bootstrap(const multiboot_info_t *info) {
             // Add padding because I'm having weird things happen while writing to low memory addresses
             if (start == 0 && size > 0x5000) {
                 start += 0x5000;
+                size -= 0x5000;
             }
 
             ctx.available_mem[available_count].size = size;
