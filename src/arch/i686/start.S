@@ -77,9 +77,33 @@ jmp_ring3:
 
 .global pit_isr
 pit_isr:
-    pusha
     call tmr_pit_handler
-    popa
+    test %eax, %eax
+    jz .ret
+    // Context switch time
+    movl (ctx), %eax // Get current process
+    add $16, %eax    // Context
+    movl %ebx, (%eax)
+    movl %ebp, 4(%eax)
+    movl %edi, 8(%eax)
+    movl %esi, 12(%eax)
+    movl %esp, 16(%eax)
+    // This function will change the page directory and return the new stack pointer
+    call process_schedule
+    movl (ctx), %eax // Get current process
+    add $16, %eax    // Context
+    mov (%eax), %ebx
+    mov 4(%eax), %ebp
+    mov 8(%eax), %edi
+    mov 12(%eax), %esi
+    mov 16(%eax), %esp
+    //mov %eax, %esp
+    movw $0x23, %ax
+    mov %ax, %ds
+    mov %ax, %es
+    mov %ax, %fs
+    mov %ax, %gs
+.ret:
     iret
 
 .global syscall_isr

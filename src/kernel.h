@@ -17,13 +17,13 @@ struct mem_region {
 #define PAGE_SIZE 0x1000
 
 struct k_ctx {
+    struct process *current_process;
     uint64_t ticks;
     // For now allocate 3 structs for describing all free memory regions
     // Should be enough... for now...
     struct mem_region available_mem[MEM_REGIONS_MAX];
     struct node *free_mem_head;
     Elf32_Ehdr *init_elf;
-    struct process *current_process;
 };
 
 #endif

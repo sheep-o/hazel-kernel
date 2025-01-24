@@ -16,7 +16,11 @@
 #define DESIRED_FREQUENCY 1000
 #define DIVISOR (PIT_FREQUENCY/DESIRED_FREQUENCY)
 
+#define TICKS_PER_PROCESS 100
+
+#include <kernel.h>
+
 void tmr_init(void);
-int tmr_pit_handler(void);
+bool tmr_pit_handler(void);
 
 #endif
