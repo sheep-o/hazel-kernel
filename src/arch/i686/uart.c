@@ -2,6 +2,21 @@
 #include <io.h>
 #include <util.h>
 
+/**
+ * Initializes the UART (Universal Asynchronous Receiver-Transmitter) on COM1.
+ *
+ * This method configures the serial port by:
+ * - Testing the COM1 scratch register for proper functionality.
+ * - Disabling all interrupts on the serial port.
+ * - Setting the baud rate to 38400.
+ * - Configuring the serial port for 8 bits, no parity, and one stop bit.
+ * - Enabling FIFO, clearing them, and setting a 14-byte threshold.
+ * - Enabling IRQs and RTS/DSR signals.
+ * - Performing a loopback mode test to verify the serial chip's functionality.
+ * - Configuring the serial in normal operation mode upon successful verification.
+ *
+ * @return 1 if initialization is successful.
+ */
 uint8_t uart_init(void) {
     // Test COM1 by seeing if scratch register can store a value
     const uint8_t old_scratch = inb(COM1 + 7);
@@ -28,12 +43,28 @@ uint8_t uart_init(void) {
     return 1;
 }
 
+/**
+ * Transmits a character via the UART (Universal Asynchronous Receiver-Transmitter) on COM1.
+ *
+ * This method ensures the transmit buffer is empty before sending the provided character.
+ * It polls the transmit register status and writes the character to the UART once the buffer is ready.
+ *
+ * @param c The character to be sent through UART.
+ */
 void uart_putc(const char c) {
     // Poll until transmit is empty
     while(!IS_TRANSMIT_EMPTY(COM1)) asm volatile ("pause" ::);
     outb(COM1, c);
 }
 
+/**
+ * Transmits a null-terminated string over the UART serial interface.
+ *
+ * This function sends each character of the provided string to the UART
+ * interface by calling uart_putc for individual character transmission.
+ *
+ * @param s Pointer to the null-terminated string to transmit.
+ */
 void uart_puts(const char *s) {
     while (*s) {
         uart_putc(*s);

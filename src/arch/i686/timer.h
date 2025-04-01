@@ -18,7 +18,7 @@
 
 #define TICKS_PER_PROCESS 100
 
-#include <kernel.h>
+#include <stdbool.h>
 
 void tmr_init(void);
 bool tmr_pit_handler(void);

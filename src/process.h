@@ -2,8 +2,8 @@
 #define PROCESS_H
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <elf.h>
-#include <kernel.h>
 
 #define STACK_SIZE 0x400000
 
@@ -31,7 +31,7 @@ struct int_ctx {
     uint32_t ss;
 };
 
-void process_init(struct process *p, Elf32_Ehdr *elf, bool change_page_dir);
+void process_init(struct process *p, const Elf32_Ehdr *elf, bool change_page_dir);
 uint32_t process_schedule();
 
 #endif //PROCESS_H

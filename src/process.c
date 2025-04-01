@@ -2,6 +2,7 @@
 #include <exception.h>
 #include <gdt.h>
 #include <util.h>
+#include <kernel.h>
 
 #define PAGE_DIR_INDEX(x) ((((uint32_t)x) >> 22) & 0x3FF)
 #define PAGE_TAB_INDEX(x) ((((uint32_t)x) >> 12) & 0x3FF)
@@ -27,7 +28,7 @@ void *memcpy(void *dest, const void *src, int n) {
 
 extern struct tss_entry tss;
 
-void process_init(struct process *p, Elf32_Ehdr *elf, bool change_page_dir) {
+void process_init(struct process *p, const Elf32_Ehdr *elf, bool change_page_dir) {
     ASSERT(elf->e_ident[EI_MAG0] == ELFMAG0
            && elf->e_ident[EI_MAG1] == ELFMAG1
            && elf->e_ident[EI_MAG2] == ELFMAG2
