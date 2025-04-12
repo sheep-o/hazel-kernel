@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.10)
-project(hazel-kernel LANGUAGES C ASM)
+project(hazel-kernel LANGUAGES CXX ASM)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 file(GLOB_RECURSE SOURCES
         src/*.S
-        src/*.c
+        src/*.cpp
         src/arch/${ARCH}/*.S
-        src/arch/${ARCH}/*.c
+        src/arch/${ARCH}/*.cpp
 )
 
 add_executable(kernel ${SOURCES})

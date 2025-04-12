@@ -915,6 +915,6 @@ int fctprintf(void (*out)(char character, void* arg), void* arg, const char* for
 
 #include <uart.h>
 void _putchar(const char c) {
-    uart_putc(c);
+  hzl::uart_putc(c);
 }
 

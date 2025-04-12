@@ -13,9 +13,9 @@
 #define COM8 0x4E8
 
 #define IS_TRANSMIT_EMPTY(x) (inb(x + 5) & 0x20)
-
-uint8_t uart_init(void);
-void uart_putc(const char c);
-void uart_puts(const char *s);
-
+namespace hzl {
+  uint8_t uart_init(void);
+  void uart_putc(const char c);
+  void uart_puts(const char *s);
+}
 #endif

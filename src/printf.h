@@ -35,11 +35,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 
-
-#ifdef __cplusplus
 extern "C" {
-#endif
-
 
 /**
  * Output a character to a custom device like UART, used by the printf() function
@@ -109,9 +105,7 @@ int vprintf_(const char* format, va_list va);
 int fctprintf(void (*out)(char character, void* arg), void* arg, const char* format, ...);
 
 
-#ifdef __cplusplus
 }
-#endif
 
 
 #endif  // _PRINTF_H_
