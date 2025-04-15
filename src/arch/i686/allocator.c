@@ -6,6 +6,7 @@ extern struct k_ctx ctx;
 
 static uint32_t bitmap_start = 0;
 static uint32_t bitmap_size  = 0;
+static uint32_t bitmap_data  = 0;
 
 void alloc_init(void) {
     ASSERT(ctx.mem_start >= KERNEL_LMA,
@@ -14,6 +15,7 @@ void alloc_init(void) {
            "Bitmap must start before 0x400000 to avoid temporary page tables");
 
     bitmap_size = ctx.mem_len / 0x1000;
+    bitmap_size -= bitmap_size / 0x1000;
 
     ASSERT(ctx.mem_start + bitmap_size <= 0x400000,
            "Bitmap can't surpass 0x400000 to avoid temporary page tables");
@@ -22,6 +24,11 @@ void alloc_init(void) {
 
     ctx.mem_start += bitmap_size;
     ctx.mem_len -= bitmap_size;
+
+    bitmap_data = bitmap_start + bitmap_size/8;
+    uint32_t rem = bitmap_data % 0x1000;
+    if (rem != 0)
+        bitmap_data += 0x1000 - rem;
 
     for (uint32_t i = 0; i < bitmap_size; i++)
         alloc_free_page(i);
@@ -56,8 +63,10 @@ void *alloc_first_page(void) {
     for (uint32_t i = 0; i < bitmap_size; i++) {
         uint8_t *byte = alloc_get_byte(i);
         const uint32_t bit_num = i % 8;
-        if (!BIT(*byte, bit_num))
-            return (void *)(i * 0x1000);
+        if (!BIT(*byte, bit_num)) {
+            alloc_res_page(i);
+            return (void *) (bitmap_data + i * 0x1000);
+        }
     }
 
     return 0;
