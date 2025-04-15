@@ -11,7 +11,7 @@
 extern struct k_ctx ctx;
 extern uint32_t boot_page_dir[1024];
 extern uint32_t boot_page_tab[1024];
-extern uint32_t tmp_page_tab[1024];
+uint32_t tmp_page_tab[1024];
 
 void *memcpy(void *dest, const void *src, int n) {
     // Cast pointers to unsigned char* for byte-wise operations
@@ -37,10 +37,16 @@ void process_init(struct process *p, const Elf32_Ehdr *elf, bool change_page_dir
 
     ASSERT(elf->e_ident[EI_CLASS] == ELFCLASS32, "Executable is not 32-bit");
 
+    /*
     const uint32_t upage_dir = (uint32_t)heap_alloc(PAGE_SIZE, true);
     const uint32_t ucode_tab = (uint32_t)heap_alloc(PAGE_SIZE, true);
     const uint32_t ustack_tab = (uint32_t)heap_alloc(PAGE_SIZE, true);
     const uint32_t stack_bottom = (uint32_t)heap_alloc(STACK_SIZE, true);
+    */
+    const uint32_t upage_dir = 0;
+    const uint32_t ucode_tab = 0;
+    const uint32_t ustack_tab = 0;
+    const uint32_t stack_bottom = 0;
 
     // Map page directory to 0x1000
     boot_page_dir[PAGE_DIR_INDEX(0x1000)] = ((uint32_t)&tmp_page_tab - KERNEL_VMA) | 7;
@@ -66,7 +72,8 @@ void process_init(struct process *p, const Elf32_Ehdr *elf, bool change_page_dir
     const Elf32_Phdr *phdr = (Elf32_Phdr *)((uint32_t)elf + elf->e_phoff);
     for (int i = 0; i < elf->e_phnum; i++) {
         if (phdr[i].p_type == PT_LOAD) {
-            const uint32_t s = (uint32_t)heap_alloc(phdr[i].p_filesz, true);
+            //const uint32_t s = (uint32_t)heap_alloc(phdr[i].p_filesz, true);
+            const uint32_t s = 0;
 
             // Map the ELF image to its specified entry
             page_dir[PAGE_DIR_INDEX(phdr[i].p_vaddr)] = ucode_tab | 7;
