@@ -77,11 +77,6 @@ jmp_ring3:
 
 .global pit_isr
 pit_isr:
-    pusha
-    call tmr_pit_handler
-    popa
-    iret
-
     call tmr_pit_handler
     test %eax, %eax
     jz .ret

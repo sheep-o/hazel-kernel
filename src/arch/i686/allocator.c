@@ -1,6 +1,7 @@
 #include <allocator.h>
 #include <kernel.h>
 #include <util.h>
+#include <interrupts.h>
 
 extern struct k_ctx ctx;
 
@@ -9,6 +10,8 @@ static uint32_t bitmap_size  = 0;
 static uint32_t bitmap_data  = 0;
 
 void alloc_init(void) {
+    ENTER_CRITICAL();
+
     ASSERT(ctx.mem_start >= KERNEL_LMA,
            "Bitmap must start after the kernel to avoid low memory and more temporary page tables");
     ASSERT(ctx.mem_start < 0x400000,
@@ -32,6 +35,8 @@ void alloc_init(void) {
 
     for (uint32_t i = 0; i < bitmap_size; i++)
         alloc_free_page(i);
+
+    EXIT_CRITICAL();
 }
 
 uint8_t *alloc_get_byte(uint32_t page_num) {
@@ -70,4 +75,33 @@ void *alloc_first_page(void) {
     }
 
     return 0;
+}
+
+bool alloc_is_free(uint32_t page_num) {
+    uint8_t *byte = alloc_get_byte(page_num);
+    const uint32_t bit_num = page_num % 8;
+    return !BIT(*byte, bit_num);
+}
+
+void *alloc_consec(uint32_t num_pages) {
+    uint32_t streak = 0;
+    uint32_t i = 0;
+    while (i < bitmap_size && streak < num_pages) {
+        if (alloc_is_free(i))
+            streak++;
+        else
+            streak = 0;
+
+        i++;
+    }
+
+    if (streak == num_pages)
+        return (void *) (bitmap_data + i * 0x1000);
+    else
+        return 0;
+}
+
+void *alloc_enough(uint32_t size) {
+    if (size % 0x1000 != 0) size += 0x1000;
+    return alloc_consec(size / 0x1000);
 }

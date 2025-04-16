@@ -30,11 +30,8 @@ void kmain(void) {
     tmr_init();
     int_init();
     uart_init();
-    //heap_init();
-    //user_init();
-
     alloc_init();
-    //printf("0x%08X", *alloc_get_byte(0));
+    user_init();
 
     while (1);
 }
