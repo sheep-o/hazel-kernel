@@ -2,7 +2,6 @@
 #define HAZEL_KERNEL_H_
 
 #include <stdint.h>
-#include <heap.h>
 #include <elf.h>
 #include <process.h>
 
@@ -19,9 +18,8 @@ struct mem_region {
 struct k_ctx {
     struct process *current_process;
     uint64_t ticks;
-    // For now allocate 3 structs for describing all free memory regions
-    // Should be enough... for now...
-    struct mem_region available_mem[MEM_REGIONS_MAX];
+    uint32_t mem_start;
+    uint32_t mem_len;
     struct node *free_mem_head;
     Elf32_Ehdr *init_elf;
 };

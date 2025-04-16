@@ -1,5 +1,4 @@
 #include <user.h>
-#include <heap.h>
 #include <gdt.h>
 #include <kernel.h>
 

@@ -26,11 +26,11 @@ void bootstrap(const multiboot_info_t *info) {
     const uint32_t kernel_start = KERNEL_LMA;
     const uint32_t kernel_end = (uint32_t)&KERNEL_END - KERNEL_VMA;
 
-    uint32_t total_memory = 0;
-    int available_count = 0;
     const uint32_t mmap_base = KERNEL_VMA + info->mmap_addr;
     const multiboot_memory_map_t *mmap = (multiboot_memory_map_t *)mmap_base;
-    for (int i = 0; i*sizeof(multiboot_memory_map_t) < info->mmap_length && available_count < MEM_REGIONS_MAX; i++) {
+    const multiboot_memory_map_t *max = NULL;
+
+    for (int i = 0; i*sizeof(multiboot_memory_map_t) < info->mmap_length; i++) {
         if (mmap[i].type == MULTIBOOT_MEMORY_AVAILABLE) {
             uint32_t start = mmap[i].addr;
             uint32_t size = mmap[i].len;
@@ -41,20 +41,21 @@ void bootstrap(const multiboot_info_t *info) {
                 start = kernel_end;
             }
 
-            // Add padding because I'm having weird things happen while writing to low memory addresses
             if (start == 0 && size > 0x5000) {
                 start += 0x5000;
                 size -= 0x5000;
             }
 
-            ctx.available_mem[available_count].size = size;
-            ctx.available_mem[available_count].start = start;
-            available_count++;
-            total_memory += size;
+            if (!max || max->size < size) {
+              max = &mmap[i];
+              ctx.mem_start = start;
+              ctx.mem_len = size;
+            }
         }
     }
 
-    ASSERT(total_memory > 0x100000*400, "Need at least 400 MiB of free memory");
+    ASSERT(max, "Memory region not selected");
+    ASSERT(ctx.mem_len > 0x100000*400, "Need at least 400 MiB of free memory");
 
     kmain();
 }

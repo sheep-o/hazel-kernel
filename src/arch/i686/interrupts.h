@@ -5,6 +5,9 @@
 
 #define IDT_MAX 256
 
+#define ENTER_CRITICAL() asm volatile("cli" ::)
+#define EXIT_CRITICAL() asm volatile("sti" ::)
+
 struct idt_entry {
    uint16_t offset_lo; 
    uint16_t seg_select;
