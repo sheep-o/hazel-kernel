@@ -84,19 +84,27 @@ bool alloc_is_free(uint32_t page_num) {
 }
 
 void *alloc_consec(uint32_t num_pages) {
+    int32_t  streak_start = -1;
     uint32_t streak = 0;
     uint32_t i = 0;
     while (i < bitmap_size && streak < num_pages) {
-        if (alloc_is_free(i))
+        if (alloc_is_free(i)) {
             streak++;
-        else
+            if (streak_start == -1) streak_start = i;
+        }
+        else {
             streak = 0;
+            streak_start = 0;
+        }
 
         i++;
     }
 
-    if (streak == num_pages)
+    if (streak == num_pages) {
+        for (uint32_t j = streak_start; j < streak_start + streak; j++)
+            alloc_res_page(j);
         return (void *) (bitmap_data + i * 0x1000);
+    }
     else
         return 0;
 }
