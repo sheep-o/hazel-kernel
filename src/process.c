@@ -79,6 +79,7 @@ void process_init(struct process *p, const Elf32_Ehdr *elf, bool change_page_dir
     p->sp = KERNEL_VMA - 0x4;
     p->page_directory = (uint32_t)page_dir - KERNEL_VMA;
     p->next = 0;
+    p->state = PROC_OK;
 
     p->c.esp = KERNEL_VMA - 0x4 - sizeof(struct int_ctx);
     p->c.ebp = KERNEL_VMA - 0x4;
@@ -100,7 +101,12 @@ void process_init(struct process *p, const Elf32_Ehdr *elf, bool change_page_dir
 }
 
 uint32_t process_schedule() {
-    ctx.current_process = ctx.current_process->next;
+    while (1) {
+        ctx.current_process = ctx.current_process->next;
+        if (ctx.current_process->state != PROC_ZOMBIE) {
+            break;
+        }
+    }
     asm volatile("mov %0, %%cr3" :: "r"(ctx.current_process->page_directory) : "memory");
     return ctx.current_process->sp;
 }

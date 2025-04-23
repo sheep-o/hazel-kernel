@@ -110,7 +110,30 @@ pit_isr:
 syscall_isr:
     pusha
     call syscall_handler
+    test %eax, %eax
+    jz syscall.ret1
+    // Context switch time
+    movl (ctx), %eax // Get current process
+    movl $1, 36(%eax)  // Set as zombie
+    // This function will change the page directory and return the new stack pointer
+    call process_schedule
+    movl (ctx), %eax // Get current process
+    add $16, %eax    // Context
+    mov (%eax), %ebx
+    mov 4(%eax), %ebp
+    mov 8(%eax), %edi
+    mov 12(%eax), %esi
+    mov 16(%eax), %esp
+    //mov %eax, %esp
+    movw $0x23, %ax
+    mov %ax, %ds
+    mov %ax, %es
+    mov %ax, %fs
+    mov %ax, %gs
+    jmp syscall.ret2
+syscall.ret1:
     popa
+syscall.ret2:
     iret
 
 .macro isr_err_stub i=0

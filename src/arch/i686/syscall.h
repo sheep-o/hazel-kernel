@@ -6,6 +6,7 @@
 enum SYSCALL {
     SYS_READ,
     SYS_WRITE,
+    SYS_EXIT = 60,
 };
 
 #define FD_STDIN 0
@@ -15,6 +16,6 @@ struct reg_frame {
     uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax; /*  Pushed by pusha. */
 };
 
-void syscall_handler(struct reg_frame regs);
+uint32_t syscall_handler(struct reg_frame regs);
 
 #endif

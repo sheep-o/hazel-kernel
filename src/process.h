@@ -7,6 +7,11 @@
 
 #define STACK_SIZE 0x400000
 
+enum PROCESS_STATE {
+    PROC_OK,
+    PROC_ZOMBIE,
+};
+
 struct p_ctx {
     uint32_t ebx;
     uint32_t ebp;
@@ -21,6 +26,7 @@ struct process {
     uint32_t page_directory;
     struct process *next;
     struct p_ctx c;
+    uint32_t state;
 };
 
 struct int_ctx {
