@@ -41,6 +41,12 @@ void bootstrap(const multiboot_info_t *info) {
                 start = kernel_end;
             }
 
+            if (start < mods[0].mod_end) {
+                const uint32_t diff = mods[0].mod_end - start;
+                size -= diff;
+                start = mods[0].mod_end;
+            }
+
             if (start == 0 && size > 0x5000) {
                 start += 0x5000;
                 size -= 0x5000;
