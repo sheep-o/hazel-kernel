@@ -12,7 +12,6 @@
 extern struct k_ctx ctx;
 extern uint32_t boot_page_dir[1024];
 extern uint32_t boot_page_tab[1024];
-uint32_t tmp_page_tab[1024];
 
 void *memcpy(void *dest, const void *src, int n) {
     // Cast pointers to unsigned char* for byte-wise operations
