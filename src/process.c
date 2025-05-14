@@ -46,15 +46,9 @@ void process_init(struct process *p, const Elf32_Ehdr *elf, bool change_page_dir
     // Map kernel
     page_dir[PAGE_DIR_INDEX(KERNEL_VMA)] = ((uint32_t)boot_page_tab - KERNEL_VMA) | 7;
 
-    // Map 4mib of stack space under the kernel
-    /*
-    page_dir[PAGE_DIR_INDEX(KERNEL_VMA - 1)] = ustack_tab | 7;
-    for (int i = 0; i < 1024*PAGE_SIZE; i += PAGE_SIZE)
-        stack_tab[PAGE_TAB_INDEX(KERNEL_VMA - STACK_SIZE + i)] = (stack_bottom + i) | 7;
-    */
     // Map 4 kib of stack space for now
     page_dir[PAGE_DIR_INDEX(KERNEL_VMA - 1)] = ((uint32_t)stack_tab - KERNEL_VMA) | 7;
-    stack_tab[PAGE_TAB_INDEX((KERNEL_VMA - 1) & 0xFFFFF000)] = (stack_bottom - KERNEL_VMA) | 7;
+    stack_tab[PAGE_TAB_INDEX((KERNEL_VMA - 1) & PAGE_MASK)] = (stack_bottom - KERNEL_VMA) | 7;
 
     // Map the load sections
     const Elf32_Phdr *phdr = (Elf32_Phdr *)((uint32_t)elf + elf->e_phoff);
@@ -101,12 +95,9 @@ void process_init(struct process *p, const Elf32_Ehdr *elf, bool change_page_dir
 }
 
 uint32_t process_schedule() {
-    while (1) {
+    do {
         ctx.current_process = ctx.current_process->next;
-        if (ctx.current_process->state != PROC_ZOMBIE) {
-            break;
-        }
-    }
+    } while (ctx.current_process->state == PROC_ZOMBIE); // Skip zombies
     asm volatile("mov %0, %%cr3" :: "r"(ctx.current_process->page_directory) : "memory");
     return ctx.current_process->sp;
 }

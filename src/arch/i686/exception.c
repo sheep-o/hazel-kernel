@@ -4,16 +4,13 @@
 /**
  * Handles CPU exceptions by printing the state of the registers and halting execution.
  *
- * This function is called whenever a CPU exception occurs. It prints details
- * about the exception, including the error code, CPU registers, and additional
- * information about the processor state. After displaying the information, it
- * enters an infinite loop to halt further execution.
+ * This function is called whenever a CPU exception occurs.
  *
  * @note This function is not meant to be called outside of an ISR stub
  *
  * TODO: Allow recovery from certain exceptions, such as a page fault
  *
- * @param r The exception frame containing the CPU state at the time of the exception.
+ * @param r The CPU state at the time of the exception.
  */
 void exception_handler(struct ex_frame r) {
     printf("Exception 0x%X (0x%X) has occurred\nEAX: 0x%08X\nECX: 0x%08X\nEDX: 0x%08X\nEBX: 0x%08X\nESI: 0x%08X\nEDI: 0x%08X\nEBP: 0x%08X\nESP: 0x%08X\n",

@@ -38,7 +38,7 @@ void pic_remap(int pic1_start, int pic2_start) {
     outb(PIC_2_DATA, PIC_2_ICW3);
     outb(PIC_2_DATA, 0x01);
 
-    // Unmask
+    // Unmask timer
     outb(PIC_1_DATA, 0b11111110);
     outb(PIC_2_DATA, 0b11111110);
 }

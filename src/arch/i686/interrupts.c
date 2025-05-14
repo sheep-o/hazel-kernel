@@ -7,11 +7,6 @@ struct idt_entry idt[IDT_MAX];
 /**
  * @brief Encodes an entry in the Interrupt Descriptor Table (IDT).
  *
- * This function populates an IDT entry with the provided offset, segment selector, and attributes.
- * It divides the 32-bit offset into two 16-bit parts, storing them in `offset_lo` and `offset_hi`.
- * The `segment_selector` specifies the code segment to use during the interrupt, and the `attributes`
- * define the characteristics of the interrupt gate.
- *
  * @param i The index of the IDT entry to encode.
  * @param offset The 32-bit offset of the interrupt service routine.
  * @param segment_selector The segment selector for the interrupt gate.
@@ -30,14 +25,7 @@ extern void syscall_isr();
 
 
 /**
- * @brief Initializes the Interrupt Descriptor Table (IDT) and enables interrupts.
- *
- * This function sets up hardware interrupt and exception handlers by encoding the IDT entries
- * with appropriate service routines and attributes. It creates entries for CPU exception
- * handlers (0-31) using the ISR stub table defined in start.S. It also configures additional handlers
- * for the Programmable Interval Timer (interrupt 0x20) and software system calls (interrupt 0x80).
- * After setting up the IDT entries, it loads the IDT using the `lidt` instruction, remaps the
- * Programmable Interrupt Controller (PIC), and enables interrupts by setting the Interrupt Flag.
+ * @brief Initializes the IDT and enables interrupts.
  *
  * This function defines:
  * - CPU exceptions (0-31) with trap gates at ring 0.

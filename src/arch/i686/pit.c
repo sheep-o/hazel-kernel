@@ -26,12 +26,7 @@ void tmr_init(void) {
 extern struct k_ctx ctx;
 
 /**
- * @brief Handles the Programmable Interval Timer (PIT) interrupt.
- *
- * This function is invoked when a PIT interrupt occurs by the PIT ISR. It updates the timer's
- * tick count, sends an End of Interrupt (EOI) signal to the PIC, and determines
- * whether a context switch should take place based on the current process and
- * tick count.
+ * @brief Handles the Programmable Interval Timer (PIT) interrupt and determines whether a context switch should occur.
  *
  * @return Returns 1 if a context switch should occur, otherwise 0.
  */
