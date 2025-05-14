@@ -27,6 +27,8 @@ struct process {
     struct process *next;
     struct p_ctx c;
     uint32_t state;
+    void *shm;
+    uint32_t id;
 };
 
 struct int_ctx {
@@ -38,6 +40,7 @@ struct int_ctx {
 };
 
 void process_init(struct process *p, const Elf32_Ehdr *elf, bool change_page_dir);
+void process_map(const struct process *p, const void *data, uint32_t addr);
 uint32_t process_schedule();
 
 #endif //PROCESS_H

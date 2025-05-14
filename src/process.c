@@ -73,6 +73,8 @@ void process_init(struct process *p, const Elf32_Ehdr *elf, bool change_page_dir
     p->page_directory = (uint32_t)page_dir - KERNEL_VMA;
     p->next = 0;
     p->state = PROC_OK;
+    p->shm = 0;
+    p->id = ++ctx.proc_count;
 
     p->c.esp = KERNEL_VMA - 0x4 - sizeof(struct int_ctx);
     p->c.ebp = KERNEL_VMA - 0x4;
@@ -91,6 +93,20 @@ void process_init(struct process *p, const Elf32_Ehdr *elf, bool change_page_dir
 
         asm volatile("mov %0, %%cr3"::"r"((uint32_t) boot_page_dir - KERNEL_VMA) : "memory");
     }
+}
+
+void process_map(const struct process* p, const void *data, uint32_t addr) {
+    uint32_t *page_dir = (uint32_t *)(KERNEL_VMA + p->page_directory);
+    if (page_dir[PAGE_DIR_INDEX(addr)] & 1) {
+        uint32_t *page_tab = (uint32_t *)(KERNEL_VMA + (page_dir[PAGE_DIR_INDEX(addr)] & PAGE_MASK));
+        page_tab[PAGE_TAB_INDEX(addr)] = ((uint32_t)data & PAGE_MASK) | 7;
+    } else {
+        uint32_t *page_tab = alloc_first_page();
+        page_dir[PAGE_DIR_INDEX(addr)] = ((uint32_t)page_tab - KERNEL_VMA) | 7;
+        page_tab[PAGE_TAB_INDEX(addr)] = ((uint32_t)data & PAGE_MASK) | 7;
+    }
+
+    asm volatile("invlpg %0" : : "m"(addr) : "memory");
 }
 
 uint32_t process_schedule() {

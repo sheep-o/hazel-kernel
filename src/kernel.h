@@ -16,6 +16,7 @@ struct k_ctx {
     uint32_t mem_start;
     uint32_t mem_len;
     Elf32_Ehdr *init_elf;
+    uint32_t proc_count;
 };
 
 #endif

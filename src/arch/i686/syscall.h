@@ -6,6 +6,8 @@
 enum SYSCALL {
     SYS_READ,
     SYS_WRITE,
+    SYS_CREATE_SHM,
+    SYS_OPEN_SHM,
     SYS_EXIT = 60,
 };
 

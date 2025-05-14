@@ -1,6 +1,8 @@
 #include <syscall.h>
 #include <printf.h>
 #include <kernel.h>
+#include <allocator.h>
+#include <util.h>
 
 extern struct k_ctx ctx;
 
@@ -21,7 +23,31 @@ uint32_t syscall_handler(struct reg_frame regs) {
         }
         case SYS_EXIT: {
             //const uint32_t exit_code = regs.edi;
+            ASSERT(ctx.proc_count > 1, "Attempt to exit init process");
+            --ctx.proc_count;
             return 1;
+        }
+        case SYS_CREATE_SHM: {
+            ASSERT(ctx.current_process->shm == 0, "Can only support 1 shared memory page rn");
+            uint8_t *page = alloc_first_page() - KERNEL_VMA;
+            ctx.current_process->shm = page;
+            process_map(ctx.current_process, page, 0x5000);
+            regs.eax = 0x5000;
+            break;
+        }
+        case SYS_OPEN_SHM: {
+            const uint32_t pid = regs.edx;
+            bool found = false;
+            const struct process *p = ctx.current_process;
+            do {
+                if (p->id == pid) {
+                    found = true;
+                    break;
+                }
+                p = p->next;
+            } while (p != ctx.current_process);
+            ASSERT(found, "Failed to find a process with the given PID");
+            process_map(ctx.current_process, p->shm, 0x6000);
             break;
         }
         default:
