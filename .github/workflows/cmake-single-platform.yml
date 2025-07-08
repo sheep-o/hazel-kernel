@@ -19,14 +19,15 @@ jobs:
     - name: Install build dependencies
       run: |
         sudo apt update
-        sudo apt install -y cmake ninja-build grub-pc-bin xorriso mtools
+        sudo apt install -y cmake ninja-build grub-pc-bin xorriso mtools unzip
 
     - name: Setup i686-elf-gcc cross-compiler
       run: |
-        curl -L https://github.com/lordmilko/i686-elf-tools/releases/download/13.2.0/i686-elf-tools-linux.zip -o /tmp/i686-elf-toolchain.tar.gz
+        curl -L https://github.com/lordmilko/i686-elf-tools/releases/download/13.2.0/i686-elf-tools-linux.zip -o /tmp/i686-elf-toolchain.zip
         sudo mkdir -p /opt/cross
-        sudo tar -xzf /tmp/i686-elf-toolchain.tar.gz -C /opt/cross --strip-components=1 # Adjust --strip-components based on tarball structure
-        echo "/opt/cross/bin" >> $GITHUB_PATH # Adjust path if your toolchain is extracted elsewhere
+        sudo unzip /tmp/i686-elf-toolchain.zip
+        sudo mv /tmp/i686-elf-toolchain/* /opt/cross
+        echo "/opt/cross/bin" >> $GITHUB_PATH
 
     - name: Configure CMake
       run: |
