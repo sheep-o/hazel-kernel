@@ -1,0 +1,46 @@
+name: Build Hazel Kernel ISO
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install build dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y cmake ninja-build grub-pc-bin xorriso mtools
+
+    - name: Setup i686-elf-gcc cross-compiler
+      run: |
+        curl -L https://github.com/lordmilko/i686-elf-tools/releases/download/13.2.0/i686-elf-tools-linux.zip -o /tmp/i686-elf-toolchain.tar.gz
+        sudo mkdir -p /opt/cross
+        sudo tar -xzf /tmp/i686-elf-toolchain.tar.gz -C /opt/cross --strip-components=1 # Adjust --strip-components based on tarball structure
+        echo "/opt/cross/bin" >> $GITHUB_PATH # Adjust path if your toolchain is extracted elsewhere
+
+    - name: Configure CMake
+      run: |
+        mkdir build
+        cd build
+        cmake .. --toolchain ../src/arch/i686/i686.cmake # Assuming i686 architecture based on provided files
+
+    - name: Build ISO
+      run: |
+        cd build
+        ninja iso # This will trigger the custom command defined in CMakeLists.txt to create Hazel.iso
+
+    - name: Upload ISO artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Hazel-Kernel-ISO
+        path: Hazel.iso
