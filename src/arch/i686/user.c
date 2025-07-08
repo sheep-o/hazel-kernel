@@ -191,13 +191,13 @@ void user_init(void) {
     uint32_t esp0 = 0;
     asm volatile ("mov %%esp, %0" : "=r" (esp0));
     tss.esp0 = esp0;
-    tss.ss0 = 0x10;
-    tss.cs = 0x1B;
-    tss.ds = 0x23;
-    tss.es = 0x23;
-    tss.fs = 0x23;
-    tss.gs = 0x23;
-    tss.ss = 0x23;
+    tss.ss0 = KERNEL_DATA_SEG;
+    tss.cs = USER_CODE_SEG;
+    tss.ds = USER_DATA_SEG;
+    tss.es = USER_DATA_SEG;
+    tss.fs = USER_DATA_SEG;
+    tss.gs = USER_DATA_SEG;
+    tss.ss = USER_DATA_SEG;
     asm volatile("ltr %%ax" : : "a"(5 << 3));
 
     jmp_ring3(p1.sp, p1.ip);

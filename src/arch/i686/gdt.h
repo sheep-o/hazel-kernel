@@ -3,6 +3,11 @@
 
 #include <stdint.h>
 
+#define KERNEL_DATA_SEG 0x10
+#define USER_CODE_SEG   0x1B
+#define USER_DATA_SEG   0x23
+#define TSS_SEGMENT_SELECTOR (5 << 3)
+
 struct tss_entry {
     uint32_t prev_tss;    // The previous TSS - with hardware task switching this is used
     uint32_t esp0;        // The stack pointer to load when we change to kernel mode
