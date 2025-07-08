@@ -25,8 +25,7 @@ jobs:
       run: |
         curl -L https://github.com/lordmilko/i686-elf-tools/releases/download/13.2.0/i686-elf-tools-linux.zip -o /tmp/i686-elf-toolchain.zip
         sudo mkdir -p /opt/cross
-        sudo unzip /tmp/i686-elf-toolchain.zip
-        sudo mv /tmp/i686-elf-toolchain/* /opt/cross
+        sudo unzip /tmp/i686-elf-toolchain.zip -d /opt/cross
         echo "/opt/cross/bin" >> $GITHUB_PATH
 
     - name: Configure CMake
