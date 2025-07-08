@@ -37,7 +37,7 @@ jobs:
     - name: Build ISO
       run: |
         cd build
-        ninja iso # This will trigger the custom command defined in CMakeLists.txt to create Hazel.iso
+        make iso
 
     - name: Upload ISO artifact
       uses: actions/upload-artifact@v4
