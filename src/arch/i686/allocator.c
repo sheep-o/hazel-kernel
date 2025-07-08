@@ -17,8 +17,8 @@ void alloc_init(void) {
     ASSERT(ctx.mem_start < 0x400000,
            "Bitmap must start before 0x400000 to avoid temporary page tables");
 
-    bitmap_size = ctx.mem_len / 0x1000;
-    bitmap_size -= bitmap_size / 0x1000;
+    bitmap_size = ctx.mem_len / PAGE_SIZE;
+    bitmap_size -= bitmap_size / PAGE_SIZE;
 
     ASSERT(ctx.mem_start + bitmap_size <= 0x400000,
            "Bitmap can't surpass 0x400000 to avoid temporary page tables");
@@ -29,9 +29,9 @@ void alloc_init(void) {
     ctx.mem_len -= bitmap_size;
 
     bitmap_data = bitmap_start + bitmap_size/8;
-    uint32_t rem = bitmap_data % 0x1000;
+    uint32_t rem = bitmap_data % PAGE_SIZE;
     if (rem != 0)
-        bitmap_data += 0x1000 - rem;
+        bitmap_data += PAGE_SIZE - rem;
 
     for (uint32_t i = 0; i < bitmap_size; i++)
         alloc_free_page(i);
@@ -70,7 +70,7 @@ void *alloc_first_page(void) {
         const uint32_t bit_num = i % 8;
         if (!BIT(*byte, bit_num)) {
             alloc_res_page(i);
-            return (void *) (bitmap_data + i * 0x1000);
+            return (void *) (bitmap_data + i * PAGE_SIZE);
         }
     }
 
@@ -96,12 +96,12 @@ void *alloc_consec(uint32_t num_pages) {
     }
 
     if (streak == num_pages)
-        return (void *) (bitmap_data + i * 0x1000);
-    else
-        return 0;
+        return (void *) (bitmap_data + i * PAGE_SIZE);
+
+    return 0;
 }
 
 void *alloc_enough(uint32_t size) {
-    if (size % 0x1000 != 0) size += 0x1000;
-    return alloc_consec(size / 0x1000);
+    if (size % PAGE_SIZE != 0) size += PAGE_SIZE;
+    return alloc_consec(size / PAGE_SIZE);
 }

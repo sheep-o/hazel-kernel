@@ -5,6 +5,8 @@
 
 #define IDT_MAX 256
 #define EXCEPTION_COUNT 32
+#define PIT_INT_NUM 0x20
+#define SYS_INT_NUM 0x80
 #define ENTER_CRITICAL() asm volatile("cli" ::)
 #define EXIT_CRITICAL() asm volatile("sti" ::)
 

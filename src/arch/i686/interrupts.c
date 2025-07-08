@@ -12,16 +12,16 @@ void int_encode_idt(int i, uint32_t offset, uint16_t segment_selector, uint8_t a
 }
 
 void int_init() {
-    for (int i = 0; i < 32; i++) {
+    for (int i = 0; i < EXCEPTION_COUNT; i++) {
         int_encode_idt(i, isr_stub_table[i], 0x8, INT_PRESENT | TRAP_GATE_32 | INT_RING0);
     }
 
-    int_encode_idt(0x20, (uint32_t)pit_isr, 0x8, INT_PRESENT | INT_GATE_32 | INT_RING0);
-    int_encode_idt(0x80, (uint32_t)syscall_isr, 0x8, INT_PRESENT | INT_GATE_32 | INT_RING3);
+    int_encode_idt(PIT_INT_NUM, (uint32_t)pit_isr, 0x8, INT_PRESENT | INT_GATE_32 | INT_RING0);
+    int_encode_idt(SYS_INT_NUM, (uint32_t)syscall_isr, 0x8, INT_PRESENT | INT_GATE_32 | INT_RING3);
 
     const struct idtr _idtr = {
         .base = (uint32_t)idt,
-        .size = (sizeof(struct idt_entry) * 256) - 1
+        .size = sizeof(struct idt_entry) * IDT_MAX - 1
     };
 
     asm volatile ("lidt %0" :: "m"(_idtr));
