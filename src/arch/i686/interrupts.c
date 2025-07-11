@@ -1,3 +1,4 @@
+#include <gdt.h>
 #include <interrupts.h>
 #include <pic.h>
 
@@ -13,11 +14,14 @@ void int_encode_idt(int i, uint32_t offset, uint16_t segment_selector, uint8_t a
 
 void int_init() {
     for (int i = 0; i < EXCEPTION_COUNT; i++) {
-        int_encode_idt(i, isr_stub_table[i], 0x8, INT_PRESENT | TRAP_GATE_32 | INT_RING0);
+        int_encode_idt(i, isr_stub_table[i], KERNEL_CODE_SEG,
+            INT_PRESENT | TRAP_GATE_32 | INT_RING0);
     }
 
-    int_encode_idt(PIT_INT_NUM, (uint32_t)pit_isr, 0x8, INT_PRESENT | INT_GATE_32 | INT_RING0);
-    int_encode_idt(SYS_INT_NUM, (uint32_t)syscall_isr, 0x8, INT_PRESENT | INT_GATE_32 | INT_RING3);
+    int_encode_idt(PIT_INT_NUM, (uint32_t)pit_isr, KERNEL_CODE_SEG,
+        INT_PRESENT | INT_GATE_32 | INT_RING0);
+    int_encode_idt(SYS_INT_NUM, (uint32_t)syscall_isr, KERNEL_CODE_SEG,
+        INT_PRESENT | INT_GATE_32 | INT_RING3);
 
     const struct idtr _idtr = {
         .base = (uint32_t)idt,
@@ -26,5 +30,5 @@ void int_init() {
 
     asm volatile ("lidt %0" :: "m"(_idtr));
     pic_remap(PIC_1_START, PIC_2_START);
-    asm volatile ("sti" ::);
+    EXIT_CRITICAL();
 }
