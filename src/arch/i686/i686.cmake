@@ -4,3 +4,5 @@ set(CC i686-elf-gcc)
 set(CMAKE_C_COMPILER ${CC})
 set(CMAKE_C_FLAGS "-std=gnu99 -ffreestanding -Wall -Wextra -Werror -g")
 set(CMAKE_EXE_LINKER_FLAGS "-ffreestanding -nostdlib -T ${CMAKE_CURRENT_SOURCE_DIR}/src/arch/${ARCH}/linker.ld")
+
+add_compile_definitions(X86)

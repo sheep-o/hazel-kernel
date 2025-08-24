@@ -6,6 +6,7 @@
 #include <allocator.h>
 #include <printf.h>
 
+
 struct k_ctx ctx;
 
 /**
@@ -16,6 +17,10 @@ void kmain(void) {
     tmr_init();
     int_init();
     uart_init();
+#ifdef X86
+    extern void vga_clear(void);
+    vga_clear();
+#endif
     alloc_init();
     user_init();
 

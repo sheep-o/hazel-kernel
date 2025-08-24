@@ -915,6 +915,11 @@ int fctprintf(void (*out)(char character, void* arg), void* arg, const char* for
 
 #include <uart.h>
 void _putchar(const char c) {
+#ifdef X86
+    extern void vga_putc(char c);
+    vga_putc(c);
+#else
     uart_putc(c);
+#endif
 }
 
