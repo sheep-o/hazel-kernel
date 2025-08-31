@@ -1,9 +1,9 @@
 #include <process.h>
-#include <exception.h>
-#include <gdt.h>
+#include <../include/arch/i686/exception.h>
+#include <../include/arch/i686/gdt.h>
 #include <util.h>
-#include <kernel.h>
-#include <allocator.h>
+#include <../include/kernel.h>
+#include <../include/arch/i686/allocator.h>
 
 #define PAGE_DIR_INDEX(x) ((((uint32_t)x) >> 22) & 0x3FF)
 #define PAGE_TAB_INDEX(x) ((((uint32_t)x) >> 12) & 0x3FF)

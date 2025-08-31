@@ -11,7 +11,7 @@ file(GLOB_RECURSE SOURCES
 )
 
 add_executable(kernel ${SOURCES})
-target_include_directories(kernel PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/src/arch/${ARCH})
+target_include_directories(kernel PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/include/arch/${ARCH})
 target_link_libraries(kernel gcc)
 
 add_subdirectory(init-mod)
@@ -32,7 +32,7 @@ add_custom_command(
         COMMAND ${WSL} rm -rf Hazel.iso boot/kernel.elf boot/init-mod.elf
         COMMAND "${CMAKE_COMMAND}" -E copy ${CMAKE_CURRENT_BINARY_DIR}/kernel.elf ${CMAKE_CURRENT_SOURCE_DIR}/boot
         COMMAND "${CMAKE_COMMAND}" -E copy ${CMAKE_CURRENT_BINARY_DIR}/init-mod/init-mod.elf ${CMAKE_CURRENT_SOURCE_DIR}/boot
-        COMMAND ${WSL} grub-mkrescue -o Hazel.iso .
+        COMMAND ${WSL} i686-elf-grub-mkrescue -o Hazel.iso .
 )
 
 add_custom_target(iso

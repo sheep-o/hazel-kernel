@@ -1,6 +1,6 @@
-#include <user.h>
-#include <gdt.h>
-#include <kernel.h>
+#include <../../../include/arch/i686/user.h>
+#include <../../../include/arch/i686/gdt.h>
+#include <../../../include/kernel.h>
 
 struct tss_entry tss = {0};
 extern struct k_ctx ctx;

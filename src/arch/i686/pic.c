@@ -1,5 +1,5 @@
-#include <pic.h>
-#include <io.h>
+#include <../../../include/arch/i686/pic.h>
+#include <../../../include/arch/i686/io.h>
 
 /**
  * Sends an End of Interrupt (EOI) signal to the Programmable Interrupt Controller (PIC).

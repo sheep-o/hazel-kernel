@@ -1,6 +1,6 @@
-#include <gdt.h>
-#include <interrupts.h>
-#include <pic.h>
+#include <../../../include/arch/i686/gdt.h>
+#include <../../../include/arch/i686/interrupts.h>
+#include <../../../include/arch/i686/pic.h>
 
 struct idt_entry idt[IDT_MAX];
 

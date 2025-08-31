@@ -1,9 +1,9 @@
-#include <interrupts.h>
+#include <../include/arch/i686/interrupts.h>
 #include <timer.h>
-#include <uart.h>
-#include <user.h>
-#include <kernel.h>
-#include <allocator.h>
+#include <../include/arch/i686/uart.h>
+#include <../include/arch/i686/user.h>
+#include <../include/kernel.h>
+#include <../include/arch/i686/allocator.h>
 #include <printf.h>
 
 

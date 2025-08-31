@@ -1,6 +1,6 @@
-#include <multiboot.h>
-#include <uart.h>
-#include <kernel.h>
+#include <../../../include/arch/i686/multiboot.h>
+#include <../../../include/arch/i686/uart.h>
+#include <../../../include/kernel.h>
 #include <util.h>
 
 #define CHECK_FLAG(x, n) ((x & (1 << n)))
