@@ -2,7 +2,7 @@
 #define HAZEL_UTIL_H
 
 #include <printf.h>
-#include <arch/i686/uart.h>
+#include <uart.h>
 
 #define ASSERT(condition, message) \
     do { \

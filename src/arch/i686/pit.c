@@ -1,8 +1,8 @@
-#include <../../../include/arch/i686/timer.h>
-#include <../../../include/arch/i686/io.h>
-#include <../../../include/arch/i686/pic.h>
+#include <timer.h>
+#include <io.h>
+#include <pic.h>
 #include <stdint.h>
-#include <../../../include/kernel.h>
+#include <kernel.h>
 
 /**
  * @brief Initializes the timer module (Programmable Interval Timer).

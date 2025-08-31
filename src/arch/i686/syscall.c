@@ -1,7 +1,7 @@
-#include <../../../include/arch/i686/syscall.h>
+#include <syscall.h>
 #include <printf.h>
-#include <../../../include/kernel.h>
-#include <../../../include/arch/i686/allocator.h>
+#include <kernel.h>
+#include <allocator.h>
 #include <util.h>
 
 extern struct k_ctx ctx;
